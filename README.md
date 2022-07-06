@@ -14,7 +14,7 @@ Each board has a unique name (written by hand on the back of the board). Let’s
 
 If you go to the webpage [https://hardwaremovement.com](https://hardwaremovement.com) you will see a grid of boxes, each with a name, one of those names should match the name of your board. If you haven’t connected your board yet, your square should be green. Once the board is connected, it will update grayscale values to this website depending on the lighting conditions. 
     
-    ![hardwaremovement.png](images/hardwaremovement.png)        
+![hardwaremovement.png](images/hardwaremovement.png)        
 
 
 This website is only collecting light information, and since other people will likely connect at different times, feel free to come back and see how the collaborative page is changing over time. Feel free to place the board anywhere indoors and see how that impacts the page. 
