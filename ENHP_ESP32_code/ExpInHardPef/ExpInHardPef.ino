@@ -5,7 +5,7 @@
 ////////
 
 //board name
-String eeprom_user = "board_name";
+String eeprom_user = "tomato";
 
 
 #include<EEPROM.h>
@@ -23,8 +23,7 @@ IPAddress apIP(192, 168, 1, 1);
 DNSServer dnsServer;
 WiFiServer server(80);
 String image;
-
-const char netbase[] = "_ExperimentsHardPerf_";
+const char netbase[] = "_ExpHardPerf_";
 
 
 //network credentials
@@ -84,14 +83,12 @@ void setup() {
 
   //Attempt to connect to wifi, if it doesn't work make your own
   //network for people to connect to share wifi credentials.
-  if (attemptToConnect()) {
-    servo.setPeriodHertz(50);
-    servo.attach(servoPin);
-    //MQTT- connect to server
-    client.begin("hardwaremovement.com", 1883, net);
-    client.onMessage(messageReceived);
-
-  } else {
+  if (!attemptToConnect()) {
+//    servo.setPeriodHertz(50);
+//    servo.attach(servoPin);
+//    //MQTT- connect to server
+//    client.begin("hardwaremovement.com", 1883, net);
+//    client.onMessage(messageReceived);
     initImage();//load sfpc image
     runAsServer(); // create captive portal
     timeSinceWake = millis() + 60000; //give some extra time for person to be able to add their credentials

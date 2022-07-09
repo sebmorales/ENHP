@@ -9,7 +9,12 @@ void runAsServer() {
   //the captive portal won't show up, so we need to change the name all the time
   char captiveNetworkName[50] = "";
   unsigned long ran_net = random(10000);
+
+  
   strcpy_P(captiveNetworkName, netbase);//add the first part of the network name
+
+  strcat(captiveNetworkName,eeprom_user.c_str());
+
   char* ptr = captiveNetworkName + strlen(captiveNetworkName);
   ultoa(ran_net, ptr, 4);
   Serial.println(captiveNetworkName);
@@ -52,6 +57,8 @@ void portal() {
               Serial.println(header);
               String network = getValue(header, '/', 2);
               String password = getValue(header, '/', 3);
+              network.replace("%20"," ");//if the username or password have spaces, make sure these are passed properly
+              password.replace("%20"," ");
               //              String user = getValue(header, '/', 4);
 
               //save data to EEPROM
@@ -59,9 +66,10 @@ void portal() {
               for (int i = 0 ; i < eepromSize  ; i++) {
                 EEPROM.write(i, 0);
               }
+             
               EEPROM.writeString(eepromAddr1, network);
               EEPROM.writeString(eepromAddr2, password);
-              EEPROM.writeString(eepromAddr3, eeprom_user);
+//              EEPROM.writeString(eepromAddr3, eeprom_user);
               EEPROM.commit();
               newCredentials = true; //try out new credentials
               delay(500);
@@ -73,6 +81,7 @@ void portal() {
               client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
               client.println("</style></head>");
               client.println("<body><h2>Attempting to connect to " + network + "!</h2>");
+              client.println("<body><p>You may now close this window (Join other network)!</p>");
               client.println("</body></html>");
               client.println();//end response with blank line
 
@@ -136,9 +145,10 @@ void portal() {
     Serial.println("");
   }
   if (newCredentials) {
-    if (attemptToConnect()) {
-      //connection successful
-    }
+    attemptToConnect();
+//    if (attemptToConnect()) {
+//      //connection successful
+//    }
   }
 }
 
@@ -146,12 +156,18 @@ void portal() {
 boolean attemptToConnect() {
   char networkName[40] = "";
   char networkPass[40] = "";
-  //
+//
+//  String net0=eeprom_net;
+//  String pass0=eeprom_pass;
 
-  String net0 = EEPROM.readString(eepromAddr1);
-  String pass0 = EEPROM.readString(eepromAddr2);
-  net0.toCharArray(networkName, sizeof(networkName));
-  pass0.toCharArray(networkPass, sizeof(networkPass));
+//  String net0 = EEPROM.readString(eepromAddr1);
+//  String pass0 = EEPROM.readString(eepromAddr2);
+//  net0.toCharArray(networkName, sizeof(networkName));
+//  pass0.toCharArray(networkPass, sizeof(networkPass));
+
+  eeprom_net.toCharArray(networkName, sizeof(networkName));
+  eeprom_pass.toCharArray(networkPass, sizeof(networkPass));
+
 
   WiFi.begin(networkName, networkPass);
   int counter = 0;
@@ -178,7 +194,7 @@ boolean attemptToConnect() {
 
   servo.setPeriodHertz(50);
   servo.attach(servoPin);
-  //MQTT- connect to server
+//  MQTT- connect to server
   client.begin("hardwaremovement.com", 1883, net);
   client.onMessage(messageReceived);
 

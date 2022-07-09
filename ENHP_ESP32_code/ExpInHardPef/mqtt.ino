@@ -7,7 +7,11 @@ void connect() {
   }
 
   Serial.print("\nconnecting to: hardwaremovement.com");
-  while (!client.connect("esp")) {
+  char userName[40] = "";
+  eeprom_user.toCharArray(userName, sizeof(userName));
+
+  while (!client.connect(userName)) {
+//  while (!client.connect("esp")) {
     Serial.print(".");
     delay(1000);
   }
