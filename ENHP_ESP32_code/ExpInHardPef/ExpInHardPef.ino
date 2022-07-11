@@ -64,6 +64,9 @@ int fastBlink = 200;
 
 
 
+RTC_DATA_ATTR int bootCount = 0;
+
+
 void setup() {
   Serial.begin(115200);
 
@@ -83,16 +86,19 @@ void setup() {
 
   //Attempt to connect to wifi, if it doesn't work make your own
   //network for people to connect to share wifi credentials.
-  if (!attemptToConnect()) {
-//    servo.setPeriodHertz(50);
-//    servo.attach(servoPin);
-//    //MQTT- connect to server
-//    client.begin("hardwaremovement.com", 1883, net);
-//    client.onMessage(messageReceived);
+
+  //attempt to connect, if had connected before, it's likley you can connect again, so wait longer before making captive portal
+  if (!attemptToConnect() && bootCount<2) {
     initImage();//load sfpc image
     runAsServer(); // create captive portal
     timeSinceWake = millis() + 60000; //give some extra time for person to be able to add their credentials
   }
+  int additionalTry=0;
+  while(!connectedSuccess && additionalTry<4){
+    additionalTry++;
+    attemptToConnect();
+  }
+  
 }
 
 void loop() {

@@ -1,6 +1,5 @@
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  1200        /* Time ESP32 will go to sleep (in seconds)1200=20min */
-RTC_DATA_ATTR int bootCount = 0;
 
 #define BUTTON_PIN_BITMASK 0x200000000 // 2^33 in hex
 

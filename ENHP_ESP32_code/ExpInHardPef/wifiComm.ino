@@ -174,7 +174,7 @@ boolean attemptToConnect() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     counter++;
-    if (counter > 25) {
+    if (counter > 15) {
       Serial.print("connection not successful to connect to: ");
       beep();
       beep();
