@@ -1,20 +1,21 @@
 # MicroController- Getting Started
 
 Woo! You got your board on the mail, or maybe we gave it to you in person, now, what is it? What is it for?
+![Networked Hardware 2.0](images/hand_holding_board2.png)
 
-This board is based on a ESP32 microcontroller, but it also has some other components to help us get started connecting the digital world and our tangible one. We will go more in depth during class no.4, but for now, here is a quick manual to get you going. 
+This board is based on a ESP32 microcontroller, but it also has some other components to help us get started connecting the digital world and our tangible one. We will go more in depth during class, but for now, here is a quick manual to get you going. 
 
 By default, the board is already pre-programmed, so you don’t have to worry about that. But if you want to make changes, you are more than welcome to do so. We will soon update this same doc to share the code and schematics.
 
-*Note: The board in a bit of an experimental stage and this is the first time we give it to someone else. We already found a couple of mistakes that we manually fixed, but there might be more :)*
+*Note: The board in a bit of an experimental stage and we are still trying to figure things out, so please share any feedback and bugs as you find them :)*
 
  
 
 Each board has a unique name (written by hand on the back of the board). Let’s get the boards connected and start sharing light data!
 
-If you go to the webpage [https://hardwaremovement.com](https://hardwaremovement.com) you will see a grid of boxes, each with a name, one of those names should match the name of your board. If you haven’t connected your board yet, your square should be green. Once the board is connected, it will update grayscale values to this website depending on the lighting conditions. 
+If you go to the webpage [https://hardwaremovement.com](https://hardwaremovement.com) you will see a grid of boxes, each with a name. At the time I took this image, there were only three boards on there, hopefully by now there are many more. As new boards connect, the grid starts getting updated with each boards' last photoresistor reading. 
     
-![hardwaremovement.png](images/hardwaremovement.png)        
+![hardwaremovement.png](https://hardwaremovement.com/images/ENHP_windows.png)        
 
 
 This website is only collecting light information, and since other people will likely connect at different times, feel free to come back and see how the collaborative page is changing over time. Feel free to place the board anywhere indoors and see how that impacts the page. 
@@ -28,7 +29,7 @@ This website is only collecting light information, and since other people will l
 ### How to connect the board to wifi step by step
 
 1. Turn on the switch on the ESP32 board. 
-    1. You will hear a beep
+    1. You will hear a click (that's the relay acting as a small audio cue)
     2. You will see the board blink about 1x a second, this means that the board is attempting to connect to a wifi network. But because you just got the board it will most likely not be able to connect.
         
     ![board_switches.jpg](images/board_switches.jpg)        
@@ -82,25 +83,31 @@ Note: watch out for upper/lower case
 
 ### Additional info: Getting familiar with the board
 
-![boardIO.jpg](images/boardIO.jpg)
+![boardIO.jpg](https://morakana.com/wp-content/uploads/2023/06/ENHP_boards_text.png)
 
 The board consists of the micocontroller ([ESP32 dev board with a 18650 battery holder](https://wiki.geekworm.com/index.php/WEMOS_ESP32_Board_with_18650_Battery_Holder)) and a series of inputs and outputs:
 
 ### **Inputs:**
 
 - **Photoresistor**- This can be used to sense light
-- **Tilt Sensor**- This is a binary switch that can be used to read shaking or tilting of the board
+- **Magnetometer**- This is the ([MMC5603NJ](mages/MMC5603NJ.pdf)), a 3 axis magnetic + temperature sensor
 - **Potentiometer**- This is a knob can be manually turned
 - **Button-** This button has a dual function, to send data while the board is awake, and to wake the board when it is sleeping
 
 ### **Outputs:**
 
-- **Buzzer**- This can be programmed to be either a gentle beep or an irritating constant beeeeeeeeeep.
+- **Relay**- Instead of having a buzzer that could only buzz, we upgraded it to a full size relay, it clicks and it switches! We recomend only using it for DC applications, but if you know what you are doing feel free. 
 - **An LED output and pin-** this can be used to see changes or to connect to another board or arduino.
 - **A Servo-** this can be used to move things in our physical, it can turn about 180°.
 
+### **COM:**
+- **I2C**- This uses a STEMMA QT connector, a popular i2C compatible with many Adafruit and Sparkfun modules.
+- **RXTX**- These are ready in case you want to connect to another micrcontroller or anything that can communicate though serial. By default the board runs on a 115200 buadrate and only supports 3.3V.
+- **GPIO 17 & 18**- By defualt 17 is set to be a digital input (0-1) and 18 is set as an analog out (0-255).
 ### Power
 
 - The ESP32 board has a switch to turn it on/off
 - It can be charged/programmed using a micro USB cable
 - We added a small switch to let you decide if the board should stay connected or if it should connect every 20 minutes and then go to sleep. This will dramatically impact how long the board can run on battery.
+
+## Check out [MORAKANA.COM](https://morakana.com/work/networked-hardware2.0) for more details and examples.
