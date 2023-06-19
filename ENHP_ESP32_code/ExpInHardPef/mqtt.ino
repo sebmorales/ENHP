@@ -15,42 +15,55 @@ void connect() {
     Serial.print(".");
     delay(1000);
   }
-
+  // client.subscribe(eeprom_user+"_send");
   Serial.println("\nconnected!");
-
-  client.subscribe("servo_" + eeprom_user);
-  client.subscribe("out_" + eeprom_user);
-  client.subscribe("buzzer_" + eeprom_user);
-  client.subscribe("serial_" + eeprom_user);
+  String topic= eeprom_user+"_msg";
+  client.subscribe(topic.c_str());
+  delay(500);
 
 }
 
-void messageReceived(String &topic, String &payload) {
-  //if you want to recieve other topics, make sure to subscribe beforehand^
-  if (topic == "servo_" + eeprom_user) {
-    servo.write(payload.toInt());
-  }
-  if (topic == "out_" + eeprom_user) {
-    analogWrite(out, payload.toInt());
-  }
-  if (topic == "buzzer_" + eeprom_user) {
-    analogWrite(buzzer, 50);
-    delay(20);
-    analogWrite(buzzer, 0);
-  }
-  if (topic == "serial_" + eeprom_user) {
-    Serial.print(payload);
-  }
+void messageReceived(char* topic, byte* payload, unsigned int length) {
+  StaticJsonDocument<256> doc;
+  deserializeJson(doc, payload, length);
+  servo.write(int(float(doc["servo"])*180));
+  analogWrite(relay,int(doc["relay"])*255);
+  analogWrite(out,int(float(doc["out"])*255));
+  analogWrite(io18,int(float(doc["io18"]))*255);
+  // analogWrite(io17,int(float(doc["io17"])*255));
+  const char* tx_serial=doc["tx"];
+  Serial.println(tx_serial);
+  
 }
 
 
 void mqttSend() {
-  Serial.println("sending mqtt");
-  client.publish("tilt_" + eeprom_user, String(tilt_value));
-  delay(100);
-  client.publish("pot_" + eeprom_user, String(potentiometer_value));
-  delay(100);
-  client.publish("photo_" + eeprom_user, String(photoresistor_value));
-  delay(100);
+  DynamicJsonDocument doc(1024);
+  doc["name"]=eeprom_user;
+  doc["battery"]=batt_level;
+  doc["photo"]=round(photoresistor_value/4096.0*100)/100.0;//normalize
+  doc["pot"]=round(potentiometer_value/4096.0*100)/100.0;
+  // param1["magnet"]=;
+  doc["button"]=button_value;
+  doc["rx"]=rx_msg;
+  doc["io17"]=io17_value;
+  JsonObject mag = doc.createNestedObject("mag");
+  
+  if(mag_success){
+    mag["x"]=mag_x;
+    mag["y"]=mag_y;
+    mag["z"]=mag_z;
+    mag["temp"]=temp_c;
+  }
+  
 
+  char output[1024];
+  size_t n = serializeJson(doc, output);
+  // String output;
+  serializeJson(doc, output,n);
+  // Serial.println("sending mqtt");
+  char userName[40] = "";
+  eeprom_user.toCharArray(userName, sizeof(userName));
+  client.publish(userName, output);
+  // Serial.println(output);
 }

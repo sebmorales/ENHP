@@ -2,8 +2,6 @@ String header;
 
 void runAsServer() {
   delay(100);
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
   //there is a problem with phones connecting to the same network more than once,
   //the captive portal won't show up, so we need to change the name all the time
@@ -20,11 +18,18 @@ void runAsServer() {
   Serial.println(captiveNetworkName);
   WiFi.softAP(captiveNetworkName);
 
-  // if DNSServer is started with "*" for domain name, it will reply with
+  WiFi.mode(WIFI_AP);
+  // WiFi.softAP("ESP32-DNSServer");
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+
+  // i  // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
   dnsServer.start(DNS_PORT, "*", apIP);
   server.begin();
+  delay(1000);
 }
+
+
 
 
 //if no network is detected create a captive portal to allow people to provide their network credentials
@@ -176,9 +181,9 @@ boolean attemptToConnect() {
     counter++;
     if (counter > 15) {
       Serial.print("connection not successful to connect to: ");
-      beep();
-      beep();
-      beep();
+      // beep();
+      // beep();
+      // beep();
       return false;
     }
     Serial.print(".");
@@ -194,9 +199,12 @@ boolean attemptToConnect() {
 
   servo.setPeriodHertz(50);
   servo.attach(servoPin);
+  init_mag();
 //  MQTT- connect to server
-  client.begin("hardwaremovement.com", 1883, net);
-  client.onMessage(messageReceived);
+  // client.begin("hardwaremovement.com", 1883, net);
+  // client.onMessage(messageReceived);
+  client.setServer("hardwaremovement.com", 1883);
+  client.setCallback(messageReceived);
 
 
 
