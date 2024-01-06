@@ -199,7 +199,7 @@ boolean attemptToConnect() {
 
   servo.setPeriodHertz(50);
   servo.attach(servoPin);
-  init_mag();
+  init_acc();
 //  MQTT- connect to server
   // client.begin("hardwaremovement.com", 1883, net);
   // client.onMessage(messageReceived);

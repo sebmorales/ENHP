@@ -16,6 +16,12 @@ void loadEEPROM() {
   delay(500);
   eeprom_net = EEPROM.readString(eepromAddr1);
   eeprom_pass = EEPROM.readString(eepromAddr2);
+  if(eeprom_net==""){
+    eeprom_net="******";
+  }
+  if(eeprom_pass==""){
+    eeprom_pass="*******";
+  }
 //  eeprom_user = EEPROM.readString(eepromAddr3);
   Serial.println("Read from EEPROM");
   Serial.print("net:");

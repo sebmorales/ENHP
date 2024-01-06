@@ -47,14 +47,17 @@ void mqttSend() {
   doc["button"]=button_value;
   doc["rx"]=rx_msg;
   doc["io17"]=io17_value;
-  JsonObject mag = doc.createNestedObject("mag");
+  doc["mic"]=mic_event;
+  JsonObject acc = doc.createNestedObject("acc");
   
-  if(mag_success){
-    mag["x"]=mag_x;
-    mag["y"]=mag_y;
-    mag["z"]=mag_z;
-    mag["temp"]=temp_c;
+  if(acc_success){
+    acc["x"]=acc_x;
+    acc["y"]=acc_y;
+    acc["z"]=acc_z;
+    acc["heading"]=heading;
   }
+  
+ 
   
 
   char output[1024];

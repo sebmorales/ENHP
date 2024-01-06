@@ -3,7 +3,7 @@
 //
 //  V2.02
 //
-//  SFPC 2023
+//  PW 2023
 //  MORAKANA
 //
 // key changes:
@@ -16,7 +16,7 @@
 ////////
 
 //board name
-String eeprom_user = "youboardID23";
+String eeprom_user = "anchovy23";
 
 
 #include<EEPROM.h>
@@ -26,7 +26,13 @@ String eeprom_user = "youboardID23";
 #include <ArduinoJson.h>
 // #include <MQTT.h>
 #include <PubSubClient.h>
-#include <Adafruit_MMC56x3.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LIS2MDL.h>
+#include <Adafruit_LSM303_Accel.h>
+
+/* Assign a unique ID to this sensor at the same time */
+Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(54321);
+Adafruit_LIS2MDL mag = Adafruit_LIS2MDL(12345);
 
 WiFiClient net;
 // MQTTClient client;
@@ -57,15 +63,15 @@ Servo servo;
 // #define tilt 34
 #define photoresistor 34  
 #define potentiometer 35
-#define performance  39
-#define button 33
+#define performance  16
+#define mic  39
+#define button 17
 #define battery 36
 
 //pins 17 & 18 can be used as Digital IO & Analog output (no analogRead)
-#define io17 17
+#define io17 33
 #define io18 18
 
-Adafruit_MMC5603 mmc = Adafruit_MMC5603(12345);
 
 
 boolean out_value = false;
@@ -83,13 +89,24 @@ int old_io17_value=0;
 float batt_level=0;
 String rx_msg="hi";
 bool new_msg=false;
-int mag_x;
-int mag_y;
-int mag_z;
-float temp_c;
-boolean mag_success=false;
+float acc_x;
+float acc_y;
+float acc_z;
+float old_acc=0;
 
-float old_mag=0;
+float heading=0;
+float old_heading=0;
+boolean mag_success=false;
+bool acc_success=false;
+
+
+int mic_readings=200;
+int mic_current_reading=0;
+int mic_min=1024;
+int mic_max=0;
+int mic_th= 90;
+boolean mic_event=false;
+boolean old_mic=false;
 
 //time variables
 long int timeAwake = 30000; //in battery saving mode, how long (sec) should the board be awake?
@@ -103,8 +120,12 @@ int fastBlink = 200;
 
 RTC_DATA_ATTR int bootCount = 0;
 
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+
   Serial.begin(115200);
 
   pinMode(out, OUTPUT);
@@ -154,7 +175,7 @@ void loop() {
   long int loopTime = millis();
   if (connectedSuccess) {
     client.loop();
-    delay(20);  // <- fixes some issues with WiFi stability
+    // delay(20);  // <- fixes some issues with WiFi stability
     if (!client.connected()) {
       connect();
     }
@@ -178,13 +199,18 @@ void loop() {
     checkInputs(false);//don't force the input broadcast
   }
 
-  if (connectedSuccess && analogRead(button) < 3600) { //basically pulled down to ground
+  // if (connectedSuccess && analogRead(button) < 3600) { //basically pulled down to ground
+  if (connectedSuccess && digitalRead(button) ) { //pulled down to ground
     checkInputs(true);
     button_value=true;
     delay(100);
     // digitalWrite(out, HIGH);
   }else{
     button_value=false;
+  }
+  
+  if(listenMic()){
+    checkInputs(true);
   }
 
   //after we did everything we have to do, check if we need to sleep (save battery)
@@ -202,23 +228,40 @@ void checkInputs(bool force) {
   boolean change = false;
   
   if(mag_success){
-  sensors_event_t event;
-  mmc.getEvent(&event);
-    temp_c = round(mmc.readTemperature()*100)/100.0;
-    mag_x=round(event.magnetic.x*100)/100.0;
-    mag_y=round(event.magnetic.y*100)/100.0;
-    mag_z=round(event.magnetic.z*100)/100.0;
+    sensors_event_t event;
+    mag.getEvent(&event);
+    float Pi=3.14159;
+    heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
+    if (heading < 0){
+      heading = 360 + heading;
+    }
+    if(abs(old_heading-heading)>5){
+      old_heading=heading;
+      change=true;
+    }
+  }
+  
+  if(acc_success){
+    sensors_event_t event;
+    accel.getEvent(&event);
+    acc_x=event.acceleration.x;
+    acc_y=event.acceleration.y;
+    acc_z=event.acceleration.z;
+    if(abs(old_acc-abs(acc_x*acc_y*acc_z))>4000){
+      old_acc=abs(acc_x*acc_y*acc_z);
+      change=true;
+    }
   }
   
   photoresistor_value = analogRead(photoresistor);
-  batt_level=round(analogRead(battery)*2*3.3*1.1/4095*100)/100;
+  // batt_level=round(analogRead(battery)*2*3.3*1.1/4095*100)/100;
   potentiometer_value=analogRead(potentiometer);
   io17_value=digitalRead(io17);
   
-  if (mag_success && abs(old_mag - abs(mag_x*mag_y*mag_z)) > 4000) {// give some margin for noise
-  old_mag = abs(mag_x*mag_y*mag_z);
-  change = true;
-  }
+  // if (mag_success && abs(old_mag - abs(mag_x*mag_y*mag_z)) > 4000) {// give some margin for noise
+  // old_mag = abs(mag_x*mag_y*mag_z);
+  // change = true;
+  // }
   
   if (abs(old_potentiometer_value - potentiometer_value) > 60) {// give some margin for noise
     old_potentiometer_value = potentiometer_value;
@@ -239,7 +282,9 @@ void checkInputs(bool force) {
     change=true;
   }
 
-
+  // if(listenMic()){
+  //   change=true;
+  // }
 
   if (change || force) {
     if (connectedSuccess) {
