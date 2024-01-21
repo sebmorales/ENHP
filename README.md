@@ -1,4 +1,4 @@
-# MicroController- Getting Started
+# Networked Hardware- Getting Started
 
 Woo! You got your board on the mail, or maybe we gave it to you in person, now, what is it? What is it for?
 ![Networked Hardware 2.0](images/hand_holding_board2.png)
