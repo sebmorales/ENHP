@@ -17,6 +17,10 @@ bool listenMic() {
       mic_event=true;
       // digitalWrite(out, HIGH);
       old_mic=mic_event;
+      if(debug){
+        Serial.print("mic: ");
+        Serial.println(delta);
+      }
       return true;
     }
     if(mic_event!=old_mic){

@@ -26,6 +26,7 @@ void connect() {
 void messageReceived(char* topic, byte* payload, unsigned int length) {
   StaticJsonDocument<256> doc;
   deserializeJson(doc, payload, length);
+  //de-normalize values
   servo.write(int(float(doc["servo"])*180));
   analogWrite(relay,int(doc["relay"])*255);
   analogWrite(out,int(float(doc["out"])*255));
@@ -55,6 +56,7 @@ void mqttSend() {
     acc["y"]=acc_y;
     acc["z"]=acc_z;
     acc["heading"]=heading;
+    // Serial.println(acc_x);
   }
   
  

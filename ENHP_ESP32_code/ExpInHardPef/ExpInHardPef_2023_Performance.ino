@@ -1,22 +1,35 @@
 
 //  EXPERIMENTS IN NETWORKED HARDWARE PERFORMANCE
 //
-//  V2.02
+//  V2.3
 //
-//  PW 2023
+//  PIMA 2024
 //  MORAKANA
 //
 // key changes:
-// [next time] add battery reading
-// [x] replaced tilt w/ magnetometer
-// [x] added   temperature reading
-// [x] added relay
-// [x] added serial com
-// [x] added I2C port
+// [x] made mossquitto option more accessible
+// [x] debug mode to console
 ////////
 
+
+///////
+// USER VARIABLES
+
 //board name
-String eeprom_user = "anchovy23";
+String eeprom_user = "******";
+
+//network settings (in case you want them pre-loaded)
+String net_id="*******";
+String net_pass="*******";
+
+//this is the mqtt broker, you can connect to your own. This is independent from the node-red server.
+const char mqtt_broker[]="hardwaremovement.com";
+int mqtt_port=1883;
+
+bool debug=false;
+
+////////
+// BORD VARIABLES
 
 
 #include<EEPROM.h>
@@ -117,7 +130,6 @@ long int lastBlink = 0;
 int fastBlink = 200;
 
 
-
 RTC_DATA_ATTR int bootCount = 0;
 
 #include "soc/soc.h"
@@ -202,6 +214,9 @@ void loop() {
   // if (connectedSuccess && analogRead(button) < 3600) { //basically pulled down to ground
   if (connectedSuccess && digitalRead(button) ) { //pulled down to ground
     checkInputs(true);
+    if(debug){
+      Serial.println("button");
+    }
     button_value=true;
     delay(100);
     // digitalWrite(out, HIGH);
@@ -210,6 +225,9 @@ void loop() {
   }
   
   if(listenMic()){
+    if(debug){
+      Serial.println("mic");
+    }
     checkInputs(true);
   }
 
@@ -238,6 +256,9 @@ void checkInputs(bool force) {
     if(abs(old_heading-heading)>5){
       old_heading=heading;
       change=true;
+      if(debug){
+        Serial.println("heading");
+      }   
     }
   }
   
@@ -250,6 +271,9 @@ void checkInputs(bool force) {
     if(abs(old_acc-abs(acc_x*acc_y*acc_z))>4000){
       old_acc=abs(acc_x*acc_y*acc_z);
       change=true;
+      if(debug){
+        Serial.println("acc");
+      }
     }
   }
   
@@ -257,37 +281,47 @@ void checkInputs(bool force) {
   // batt_level=round(analogRead(battery)*2*3.3*1.1/4095*100)/100;
   potentiometer_value=analogRead(potentiometer);
   io17_value=digitalRead(io17);
-  
-  // if (mag_success && abs(old_mag - abs(mag_x*mag_y*mag_z)) > 4000) {// give some margin for noise
-  // old_mag = abs(mag_x*mag_y*mag_z);
-  // change = true;
-  // }
-  
+
   if (abs(old_potentiometer_value - potentiometer_value) > 60) {// give some margin for noise
     old_potentiometer_value = potentiometer_value;
     change = true;
+    if(debug){
+      Serial.println("pot");
+    }
   }
   if (abs(old_photoresistor_value - photoresistor_value) > 60) {// give some margin for noise
     old_photoresistor_value = photoresistor_value;
     change = true;
+    if(debug){
+      Serial.println("photo");
+    }
   }
 
   if (old_io17_value!=io17_value) {// give some margin for noise
     old_io17_value = io17_value;
     change = true;
+    if(debug){
+      Serial.println("io");
+    }
   }
 
   if(Serial.available() > 0){
     rx_msg = Serial.readStringUntil('\n');
     change=true;
+    if(debug){
+      Serial.println("serial");
+    }
   }
 
-  // if(listenMic()){
-  //   change=true;
-  // }
 
   if (change || force) {
     if (connectedSuccess) {
+      if(debug){
+        Serial.print("change: ");
+        Serial.print(change);
+        Serial.print(" force: ");
+        Serial.println(force);
+      }
       mqttSend();
     }
   }

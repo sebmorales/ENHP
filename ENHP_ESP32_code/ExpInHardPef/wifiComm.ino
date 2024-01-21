@@ -201,9 +201,10 @@ boolean attemptToConnect() {
   servo.attach(servoPin);
   init_acc();
 //  MQTT- connect to server
-  // client.begin("hardwaremovement.com", 1883, net);
-  // client.onMessage(messageReceived);
-  client.setServer("hardwaremovement.com", 1883);
+  //
+
+  client.setServer(mqtt_broker, mqtt_port);
+  // client.setServer("hardwaremovement.com", 1883);
   client.setCallback(messageReceived);
 
 
