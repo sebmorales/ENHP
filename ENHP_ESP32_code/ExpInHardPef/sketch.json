@@ -1,9 +1,22 @@
 {
   "cpu": {
-    "fqbn": "esp32:esp32:esp32:CPUFreq=240,DebugLevel=none,EraseFlash=none,EventsCore=1,FlashFreq=80,FlashMode=qio,FlashSize=4M,LoopCore=1,PSRAM=disabled,PartitionScheme=default,UploadSpeed=921600",
+    "fqbn": "esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=160,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default",
     "name": "ESP32 Dev Module",
     "type": "serial"
   },
-  "secrets": [],
+  "secrets": [
+    {
+      "name": "SECRET_broker_url",
+      "value": ""
+    },
+    {
+      "name": "SECRET_net_pass",
+      "value": ""
+    },
+    {
+      "name": "SECRET_ssid",
+      "value": ""
+    }
+  ],
   "included_libs": []
 }

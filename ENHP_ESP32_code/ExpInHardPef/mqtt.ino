@@ -6,7 +6,8 @@ void connect() {
     delay(1000);
   }
 
-  Serial.print("\nconnecting to: hardwaremovement.com");
+  Serial.print("\nconnecting to: ");
+  Serial.print(SECRET_broker_url);
   char userName[40] = "";
   eeprom_user.toCharArray(userName, sizeof(userName));
 
